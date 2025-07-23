@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GitHub Profile Viewer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="bg-gradient-to-tr from-gray-900 via-black to-gray-900 text-white font-sans px-6 py-12 min-h-screen">
+
+  <!-- Header -->
+  <div class="text-center mb-12">
+    <h1
+      class="text-5xl font-extrabold bg-gradient-to-r from-purple-600 to-rose-400 bg-clip-text text-transparent drop-shadow-lg">
+      GitHub Profile Viewer
+    </h1>
+    <p class="text-gray-400 mt-3 text-lg tracking-wide max-w-xl mx-auto">
+      Search GitHub users and explore their profile with repo filters.
+    </p>
+  </div>
+
+  <!-- Search Form -->
+  <form id="searchForm"
+    class="max-w-xl mx-auto flex gap-4 bg-gradient-to-r from-purple-800 via-gray-900 to-black p-5 rounded-3xl shadow-2xl mb-10">
+    <input id="usernameInput" type="text" placeholder="Type GitHub username, e.g. pankajgour"
+      class="flex-1 px-6 py-3 bg-gradient-to-r from-gray-800 to-gray-900 rounded-3xl text-white placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-pink-500/70 transition"
+      required autocomplete="off" />
+    <button type="submit"
+      class="bg-gradient-to-r from-pink-500 to-purple-600 px-8 py-3 rounded-3xl font-extrabold text-white shadow-lg hover:scale-105 transform transition">
+      Search
+    </button>
+  </form>
+
+  <!-- Result Container -->
+  <div id="resultContainer" class="max-w-6xl mx-auto space-y-14"></div>
+
+  <script src="script.js"></script>
+</body>
+
+</html>

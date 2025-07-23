@@ -1,0 +1,82 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+html,
+body {
+  height: 100%;
+  width: 100%;
+}
+/* Tooltip for last update */
+.tooltip {
+  position: relative;
+  cursor: pointer;
+}
+
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+  opacity: 1;
+  transform: translateY(-10px);
+  z-index: 50;
+}
+
+.tooltiptext {
+  visibility: hidden;
+  opacity: 0;
+  width: max-content;
+  background-color: rgba(31, 41, 55, 0.9);
+  /* slate-800 */
+  color: #e0c1d2;
+  /* pink-400 */
+  text-align: center;
+  border-radius: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  position: absolute;
+  bottom: 120%;
+  left: 50%;
+  transform: translateX(-50%) translateY(0);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  font-size: 0.75rem;
+  box-shadow: 0 0 10px rgba(219, 39, 119, 0.7);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* Profile animation */
+#profileSection {
+  animation: fadeInUp 0.7s ease forwards;
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Filter bar animations */
+#filterBar input,
+#filterBar select {
+  transition: box-shadow 0.3s ease;
+}
+
+#filterBar input:focus,
+#filterBar select:focus {
+  box-shadow: 0 0 10px rgba(40, 132, 185, 0.8);
+  outline: none;
+}
+
+/* Repo card hover scale */
+.repo-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.repo-card:hover {
+  transform: scale(1.05);
+  box-shadow: 0 10px 25px rgba(219, 39, 119, 0.6);
+  z-index: 40;
+  position: relative;
+}
