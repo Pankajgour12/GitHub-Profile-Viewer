@@ -81,6 +81,24 @@ body {
   position: relative;
 }
 
+/* Battle Mode Button Glow */
+#battleModeBtn {
+  box-shadow: 0 0 10px rgba(168, 85, 247, 0.3);
+}
+#battleModeBtn:hover {
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.6);
+}
+
+/* Profile Score Badge Animation */
+#profileSection .absolute {
+  animation: bounceIn 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+}
+
+@keyframes bounceIn {
+  0% { transform: scale(0); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
 /* Custom Scrollbar for Modal */
 .custom-scrollbar::-webkit-scrollbar {
   width: 8px;

@@ -1,16 +1,56 @@
 let allRepos = [];
 let currentModalRepo = null;
+let isBattleMode = false;
 
 const form = document.getElementById("searchForm");
 const usernameInput = document.getElementById("usernameInput");
+const usernameInput2 = document.getElementById("usernameInput2");
 const resultContainer = document.getElementById("resultContainer");
+const battleContainer = document.getElementById("battleContainer");
+const battleModeBtn = document.getElementById("battleModeBtn");
+
+// Toggle Battle Mode
+battleModeBtn.addEventListener("click", () => {
+  isBattleMode = !isBattleMode;
+  if (isBattleMode) {
+    battleModeBtn.innerHTML = `<span>⚔️</span> Battle Mode: ON`;
+    battleModeBtn.classList.add("bg-purple-600", "text-white");
+    usernameInput2.classList.remove("hidden");
+    resultContainer.classList.add("hidden");
+    battleContainer.classList.remove("hidden");
+    form.classList.add("max-w-4xl");
+    form.classList.remove("max-w-xl");
+  } else {
+    battleModeBtn.innerHTML = `<span>⚔️</span> Battle Mode: OFF`;
+    battleModeBtn.classList.remove("bg-purple-600", "text-white");
+    usernameInput2.classList.add("hidden");
+    resultContainer.classList.remove("hidden");
+    battleContainer.classList.add("hidden");
+    form.classList.remove("max-w-4xl");
+    form.classList.add("max-w-xl");
+    battleContainer.innerHTML = "";
+  }
+});
 
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
-  const username = usernameInput.value.trim();
-  if (!username) return;
+  const user1 = usernameInput.value.trim();
+  const user2 = usernameInput2.value.trim();
 
+  if (!user1) return;
+
+  if (isBattleMode) {
+    if (!user2) return;
+    startBattle(user1, user2);
+  } else {
+    fetchAndDisplayUser(user1);
+  }
+});
+
+async function fetchAndDisplayUser(username) {
   resultContainer.innerHTML = `<p class="text-center text-gray-400 text-lg">Loading...</p>`;
+  resultContainer.classList.remove("hidden");
+  battleContainer.classList.add("hidden");
 
   try {
     const [userRes, reposRes] = await Promise.all([
@@ -26,17 +66,98 @@ form.addEventListener("submit", async (e) => {
     const reposData = await reposRes.json();
     allRepos = reposData;
 
-    displayProfile(userData);
+    displayProfile(userData, allRepos);
     displayFilterBar();
     displayRepos(allRepos);
   } catch (err) {
     resultContainer.innerHTML = `<p class="text-center text-red-500 font-semibold text-lg">❌ ${err.message}</p>`;
   }
-});
+}
 
-function displayProfile(user) {
+async function startBattle(u1, u2) {
+  battleContainer.innerHTML = `<p class="text-center text-gray-400 text-lg">⚔️ Battling...</p>`;
+  
+  try {
+    const [res1, res2] = await Promise.all([
+      fetch(`https://api.github.com/users/${u1}`),
+      fetch(`https://api.github.com/users/${u2}`)
+    ]);
+
+    if(!res1.ok || !res2.ok) throw new Error("One or both users not found");
+
+    const data1 = await res1.json();
+    const data2 = await res2.json();
+
+    // Fetch repos for score calculation (optional, but good for accuracy)
+    // For speed in battle, we might just use public_repos count for score approximation
+    // or fetch them if needed. Let's fetch to be consistent with score algo.
+    const [repos1Res, repos2Res] = await Promise.all([
+       fetch(data1.repos_url + "?per_page=100"),
+       fetch(data2.repos_url + "?per_page=100")
+    ]);
+    const repos1 = await repos1Res.json();
+    const repos2 = await repos2Res.json();
+
+    displayBattleResults(data1, repos1, data2, repos2);
+
+  } catch (err) {
+    battleContainer.innerHTML = `<p class="text-center text-red-500 font-semibold text-lg">❌ ${err.message}</p>`;
+  }
+}
+
+function calculateProfileScore(user, repos) {
+  let score = 0;
+
+  // 1. Bio, Location, Blog (5 pts each)
+  if (user.bio) score += 5;
+  if (user.location) score += 5;
+  if (user.blog) score += 5;
+
+  // 2. Followers (1 pt per 10 followers)
+  score += Math.floor(user.followers / 10);
+
+  // 3. Public Repos (2 pts per repo)
+  score += user.public_repos * 2;
+
+  // 4. Account Age (10 pts per year)
+  const createdYear = new Date(user.created_at).getFullYear();
+  const currentYear = new Date().getFullYear();
+  score += (currentYear - createdYear) * 10;
+
+  // 5. Stars & Forks (from fetched repos)
+  if (repos && repos.length > 0) {
+    const totalStars = repos.reduce((acc, r) => acc + r.stargazers_count, 0);
+    const totalForks = repos.reduce((acc, r) => acc + r.forks_count, 0);
+    
+    score += Math.floor(totalStars / 5); // 1 pt per 5 stars
+    score += Math.floor(totalForks / 10); // 1 pt per 10 forks
+  }
+
+  return score;
+}
+
+function getScoreColor(score) {
+  // Adjusted thresholds for the new uncapped score
+  if (score < 50) return "text-red-500 border-red-500";
+  if (score < 150) return "text-yellow-400 border-yellow-400";
+  return "text-green-400 border-green-400";
+}
+
+function displayProfile(user, repos) {
+  const score = calculateProfileScore(user, repos);
+  const scoreColorClass = getScoreColor(score);
+
   resultContainer.innerHTML = `
-    <div id="profileSection" class="flex flex-col md:flex-row gap-6 items-center bg-gradient-to-r from-purple-900 via-black to-gray-900 p-8 rounded-3xl shadow-2xl border border-pink-600">
+    <div id="profileSection" class="flex flex-col md:flex-row gap-6 items-center bg-gradient-to-r from-purple-900 via-black to-gray-900 p-8 rounded-3xl shadow-2xl border border-pink-600 relative">
+      
+      <!-- Profile Score Badge -->
+      <div class="absolute top-4 right-4 flex flex-col items-center">
+        <div class="w-16 h-16 rounded-full border-4 ${scoreColorClass} flex items-center justify-center bg-black/50 shadow-lg backdrop-blur-sm">
+          <span class="text-xl font-bold ${scoreColorClass.split(' ')[0]}">${score}</span>
+        </div>
+        <span class="text-xs text-gray-400 mt-1 font-semibold uppercase tracking-wider">Score</span>
+      </div>
+
       <img
         src="${user.avatar_url}"
         alt="${user.login}"
@@ -66,15 +187,80 @@ function displayProfile(user) {
             🤝 Following: ${user.following}
           </div>
         </div>
-        <a
-          href="${user.html_url}"
-          target="_blank"
-          class="inline-block mt-6 text-pink-500 underline font-semibold hover:text-pink-400 transition"
-        >View Profile on GitHub</a>
+        <div class="flex flex-wrap gap-4 mt-6">
+          <a
+            href="${user.html_url}"
+            target="_blank"
+            class="inline-block px-6 py-2 rounded-xl bg-gray-800 text-pink-500 border border-pink-500 font-semibold hover:bg-pink-500 hover:text-white transition"
+          >View Profile</a>
+          
+        </div>
       </div>
     </div>
   `;
 }
+
+function displayBattleResults(u1, r1, u2, r2) {
+  const score1 = calculateProfileScore(u1, r1);
+  const score2 = calculateProfileScore(u2, r2);
+  
+  const winner = score1 > score2 ? 1 : score2 > score1 ? 2 : 0; // 0 = tie
+
+  const card1Class = winner === 1 ? "border-4 border-green-500 shadow-[0_0_30px_rgba(34,197,94,0.6)]" : "border border-gray-700";
+  const card2Class = winner === 2 ? "border-4 border-green-500 shadow-[0_0_30px_rgba(34,197,94,0.6)]" : "border border-gray-700";
+
+  battleContainer.innerHTML = `
+    <div class="grid md:grid-cols-2 gap-8">
+      <!-- User 1 -->
+      <div class="bg-gray-900 p-8 rounded-3xl ${card1Class} flex flex-col items-center text-center relative transition-all duration-500">
+        ${winner === 1 ? '<div class="absolute -top-6 bg-green-500 text-black font-bold px-4 py-1 rounded-full shadow-lg animate-bounce">WINNER 👑</div>' : ''}
+        <img src="${u1.avatar_url}" class="w-32 h-32 rounded-full border-4 border-purple-500 mb-4 shadow-xl">
+        <h2 class="text-3xl font-bold text-white mb-2">${u1.name || u1.login}</h2>
+        <div class="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600 mb-6">${score1}</div>
+        
+        <div class="w-full space-y-3">
+          <div class="flex justify-between bg-gray-800 p-3 rounded-xl">
+            <span class="text-gray-400">Followers</span>
+            <span class="font-bold text-white">${u1.followers}</span>
+          </div>
+          <div class="flex justify-between bg-gray-800 p-3 rounded-xl">
+            <span class="text-gray-400">Public Repos</span>
+            <span class="font-bold text-white">${u1.public_repos}</span>
+          </div>
+          <div class="flex justify-between bg-gray-800 p-3 rounded-xl">
+            <span class="text-gray-400">Total Stars</span>
+            <span class="font-bold text-white">${r1.reduce((a,b)=>a+b.stargazers_count,0)}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- User 2 -->
+      <div class="bg-gray-900 p-8 rounded-3xl ${card2Class} flex flex-col items-center text-center relative transition-all duration-500">
+        ${winner === 2 ? '<div class="absolute -top-6 bg-green-500 text-black font-bold px-4 py-1 rounded-full shadow-lg animate-bounce">WINNER 👑</div>' : ''}
+        <img src="${u2.avatar_url}" class="w-32 h-32 rounded-full border-4 border-purple-500 mb-4 shadow-xl">
+        <h2 class="text-3xl font-bold text-white mb-2">${u2.name || u2.login}</h2>
+        <div class="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600 mb-6">${score2}</div>
+        
+        <div class="w-full space-y-3">
+          <div class="flex justify-between bg-gray-800 p-3 rounded-xl">
+            <span class="text-gray-400">Followers</span>
+            <span class="font-bold text-white">${u2.followers}</span>
+          </div>
+          <div class="flex justify-between bg-gray-800 p-3 rounded-xl">
+            <span class="text-gray-400">Public Repos</span>
+            <span class="font-bold text-white">${u2.public_repos}</span>
+          </div>
+          <div class="flex justify-between bg-gray-800 p-3 rounded-xl">
+            <span class="text-gray-400">Total Stars</span>
+            <span class="font-bold text-white">${r2.reduce((a,b)=>a+b.stargazers_count,0)}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+
 
 function displayFilterBar() {
   const filterHTML = `
@@ -103,7 +289,7 @@ function displayFilterBar() {
         type="number"
         min="0"
         placeholder="⭐ Min Stars"
-        class="bg-gradient-to-r from-gray-900 to-gray-800 px-5 py-3 rounded-3xl text-white w-[120px] placeholder-pink-400 focus:outline-none focus:ring-4 focus:ring-pink-500/80 transition"
+        class="bg-gradient-to-r from-gray-900 to-gray-800 px-5 py-3 rounded-3xl text-white min-w-[150px] placeholder-pink-400 focus:outline-none focus:ring-4 focus:ring-pink-500/80 transition"
       />
       <button id="clearFilters" class="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-5 py-3 rounded-3xl font-bold hover:scale-105 transition transform">
         ✖ Clear Filters
