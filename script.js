@@ -60,6 +60,9 @@ async function fetchAndDisplayUser(username) {
       ),
     ]);
 
+    if (userRes.status === 403 || reposRes.status === 403) {
+      throw new Error("API Rate Limit Exceeded. Please wait a while or use a VPN.");
+    }
     if (!userRes.ok) throw new Error("User not found");
 
     const userData = await userRes.json();
@@ -83,6 +86,9 @@ async function startBattle(u1, u2) {
       fetch(`https://api.github.com/users/${u2}`)
     ]);
 
+    if (res1.status === 403 || res2.status === 403) {
+      throw new Error("API Rate Limit Exceeded. Please wait a while.");
+    }
     if(!res1.ok || !res2.ok) throw new Error("One or both users not found");
 
     const data1 = await res1.json();
@@ -314,14 +320,23 @@ function displayFilterBar() {
   });
 }
 
-function displayRepos(repos) {
-  const repoGrid = document.getElementById("repoGrid");
-  if (!repoGrid) return;
 
-  if (!repos.length) {
-    repoGrid.innerHTML = `<p class="text-center text-gray-400 col-span-full text-lg">No matching repositories.</p>`;
-    return;
-  }
+function displayRepos(repos) {
+  // Initialize Intersection Observer for Tech Stack
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const repoName = entry.target.dataset.repoName;
+        const owner = entry.target.dataset.owner;
+        const barId = `tech-stack-${repoName}`;
+        // Only fetch if empty (not already fetched)
+        if (document.getElementById(barId).innerHTML === "") {
+           fetchLanguages(owner, repoName, barId);
+        }
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
 
   const html = repos
     .map((repo, index) => {
@@ -334,40 +349,56 @@ function displayRepos(repos) {
           year: "numeric",
         }
       );
-      // Staggered animation delay
       const delay = index * 0.1; 
       
-      // Note: We use a button or div instead of 'a' tag to prevent default navigation, 
-      // but we'll keep 'a' with preventDefault for semantics or just use div for the card.
-      // Let's use a div that looks like a card and handle click.
       return `
       <div
-        onclick="openModal('${repo.name}')"
-        class="repo-card tooltip block p-6 bg-gradient-to-r from-purple-900 via-gray-900 to-black rounded-3xl shadow-2xl border border-purple-700 hover:border-pink-500 cursor-pointer relative overflow-hidden group"
+        class="repo-card block p-6 bg-gradient-to-r from-purple-900 via-gray-900 to-black rounded-3xl shadow-2xl border border-purple-700 hover:border-pink-500 relative overflow-hidden group transition-all duration-300"
         style="animation-delay: ${delay}s;"
         data-tilt
         data-tilt-glare
         data-tilt-max-glare="0.3"
         data-tilt-scale="1.02"
+        data-repo-name="${repo.name}"
+        data-owner="${repo.owner.login}"
       >
-        <h3 class="text-white font-extrabold text-xl mb-2 group-hover:text-pink-400 transition-colors">${repo.name}</h3>
-        <p class="text-gray-400 line-clamp-3 mb-4">${
-          repo.description || "No description."
-        }</p>
-        <div class="flex flex-wrap items-center gap-4 text-sm text-pink-400 font-semibold">
-          <div class="flex items-center gap-1">
-            ⭐ ${repo.stargazers_count}
-          </div>
-          <div class="flex items-center gap-1">
-            🍴 ${repo.forks_count}
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="w-4 h-4 rounded-full" style="background-color: ${langColor};"></span>
-            <span>${repo.language || "Unknown"}</span>
-          </div>
-          <div class="ml-auto text-xs text-gray-400 italic">${lastUpdated}</div>
+        <div onclick="openModal('${repo.name}')" class="cursor-pointer">
+            <h3 class="text-white font-extrabold text-xl mb-2 group-hover:text-pink-400 transition-colors">${repo.name}</h3>
+            <p class="text-gray-400 line-clamp-3 mb-4">${
+            repo.description || "No description."
+            }</p>
+            <div class="flex flex-wrap items-center gap-4 text-sm text-pink-400 font-semibold mb-4">
+            <div class="flex items-center gap-1">
+                ⭐ ${repo.stargazers_count}
+            </div>
+            <div class="flex items-center gap-1">
+                🍴 ${repo.forks_count}
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="w-4 h-4 rounded-full" style="background-color: ${langColor};"></span>
+                <span>${repo.language || "Unknown"}</span>
+            </div>
+            <div class="ml-auto text-xs text-gray-400 italic">${lastUpdated}</div>
+            </div>
         </div>
-        <span class="tooltiptext">Last updated: ${lastUpdated}</span>
+
+        <!-- Tech Stack Bar -->
+        <div id="tech-stack-${repo.name}" class="w-full h-3 rounded-full bg-gray-800 overflow-hidden flex mb-2"></div>
+        <!-- Tech Stack Legend -->
+        <div id="tech-stack-legend-${repo.name}" class="flex flex-wrap gap-3 text-xs font-semibold mb-4"></div>
+
+        <!-- Code Browser Button -->
+        <button 
+            onclick="toggleFileBrowser('${repo.name}', '${repo.owner.login}', '${repo.default_branch}', 'browser-${repo.name}')"
+            class="w-full py-2 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white text-sm font-semibold transition flex items-center justify-center gap-2"
+        >
+            <span>📂</span> Browse Files
+        </button>
+
+        <!-- File Browser Container -->
+        <div id="browser-${repo.name}" class="hidden mt-4 p-4 bg-black/50 rounded-xl border border-gray-700 text-sm text-gray-300 max-h-60 overflow-y-auto custom-scrollbar">
+            <div class="text-center text-gray-500 italic">Loading files...</div>
+        </div>
       </div>
       `;
     })
@@ -375,7 +406,10 @@ function displayRepos(repos) {
 
   repoGrid.innerHTML = html;
 
-  // Initialize Vanilla Tilt on new elements
+  // Observe new cards
+  document.querySelectorAll(".repo-card").forEach(card => observer.observe(card));
+
+  // Initialize Vanilla Tilt
   if (typeof VanillaTilt !== "undefined") {
     VanillaTilt.init(document.querySelectorAll(".repo-card"), {
       max: 15,
@@ -384,6 +418,144 @@ function displayRepos(repos) {
       "max-glare": 0.2,
     });
   }
+}
+
+
+// --- Deep Dive Features Logic ---
+
+async function fetchLanguages(owner, repo, elementId) {
+    const container = document.getElementById(elementId);
+    if (!container) return;
+
+    try {
+        const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/languages`);
+        if (!res.ok) return;
+        const data = await res.json();
+        
+        const total = Object.values(data).reduce((a, b) => a + b, 0);
+        if (total === 0) {
+            container.innerHTML = '<div class="w-full h-full bg-gray-700"></div>';
+            return;
+        }
+
+        // Top 3 languages + others
+        const sorted = Object.entries(data).sort((a, b) => b[1] - a[1]);
+        const top3 = sorted.slice(0, 3);
+        
+        let html = '';
+        let legendHtml = '';
+
+        top3.forEach(([lang, bytes]) => {
+            const percent = ((bytes / total) * 100).toFixed(1);
+            const color = getLanguageColor(lang);
+            
+            // Bar Segment
+            html += `
+                <div class="h-full" style="width: ${percent}%; background-color: ${color};"></div>
+            `;
+
+            // Legend Item
+            legendHtml += `
+                <div class="flex items-center gap-1">
+                    <span class="w-2 h-2 rounded-full" style="background-color: ${color};"></span>
+                    <span class="text-gray-300">${lang} <span class="text-gray-500">(${percent}%)</span></span>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+        
+        // Populate Legend
+        const legendContainer = document.getElementById(`tech-stack-legend-${repo}`);
+        if (legendContainer) {
+            legendContainer.innerHTML = legendHtml;
+        }
+    } catch (e) {
+        console.error("Failed to fetch languages", e);
+    }
+}
+
+async function toggleFileBrowser(repo, owner, branch, containerId) {
+    const container = document.getElementById(containerId);
+    if (container.classList.contains("hidden")) {
+        container.classList.remove("hidden");
+        // Only fetch if not already loaded (check if it has file-tree class or specific content)
+        if (!container.querySelector(".file-tree")) {
+            await fetchRepoContents(owner, repo, "", container);
+        }
+    } else {
+        container.classList.add("hidden");
+    }
+}
+
+async function fetchRepoContents(owner, repo, path, container) {
+    try {
+        const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`);
+        if (!res.ok) throw new Error("Failed to load");
+        const data = await res.json();
+        
+        // Sort: Folders first, then files
+        const sorted = data.sort((a, b) => {
+            if (a.type === b.type) return a.name.localeCompare(b.name);
+            return a.type === "dir" ? -1 : 1;
+        });
+
+        renderFileTree(sorted, container, owner, repo);
+    } catch (e) {
+        container.innerHTML = `<div class="text-red-400 text-center">Error loading files</div>`;
+    }
+}
+
+function renderFileTree(files, container, owner, repo) {
+    const ul = document.createElement("ul");
+    ul.className = "file-tree space-y-1 pl-2";
+    
+    files.forEach(file => {
+        const li = document.createElement("li");
+        li.className = "file-tree-item";
+        
+        if (file.type === "dir") {
+            li.innerHTML = `
+                <div class="flex items-center gap-2 cursor-pointer hover:text-white group" onclick="toggleFolder(this, '${owner}', '${repo}', '${file.path}')">
+                    <span class="text-yellow-400">📁</span>
+                    <span class="group-hover:underline">${file.name}</span>
+                </div>
+                <div class="folder-content hidden ml-4 border-l border-gray-700 pl-2"></div>
+            `;
+        } else {
+            li.innerHTML = `
+                <div class="flex items-center gap-2 text-gray-400 hover:text-white">
+                    <span class="text-gray-500">📄</span>
+                    <span>${file.name}</span>
+                </div>
+            `;
+        }
+        ul.appendChild(li);
+    });
+
+    // If container is the main container, clear loading text
+    if (container.id && container.id.startsWith("browser-")) {
+        container.innerHTML = "";
+    }
+    container.appendChild(ul);
+}
+
+async function toggleFolder(element, owner, repo, path) {
+    const contentDiv = element.nextElementSibling;
+    if (contentDiv.classList.contains("hidden")) {
+        contentDiv.classList.remove("hidden");
+        if (contentDiv.innerHTML === "") {
+            contentDiv.innerHTML = `<div class="text-gray-500 text-xs pl-2">Loading...</div>`;
+            await fetchRepoContents(owner, repo, path, contentDiv);
+            // Remove loading text if fetchRepoContents appends ul, or clear it inside fetchRepoContents
+            // Actually fetchRepoContents appends to container. We should clear loading before appending in renderFileTree or here.
+            // Let's adjust renderFileTree to clear container if it was just loading text.
+             const loader = contentDiv.querySelector(".text-gray-500");
+             if(loader) loader.remove();
+        }
+    } else {
+        contentDiv.classList.add("hidden");
+    }
 }
 
 // --- Modal Logic ---
