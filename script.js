@@ -1,4 +1,5 @@
 let allRepos = [];
+let currentModalRepo = null;
 
 const form = document.getElementById("searchForm");
 const usernameInput = document.getElementById("usernameInput");
@@ -77,7 +78,7 @@ function displayProfile(user) {
 
 function displayFilterBar() {
   const filterHTML = `
-    <div id="filterBar" class="flex flex-wrap gap-4 items-center justify-between bg-gradient-to-r from-pink-700 via-purple-900 to-black p-5 rounded-3xl shadow-xl border border-pink-600 mb-12 px-4 py-2 rounded-lg bg-gradient-to-r from-[#ff6a00] to-[#ee0979] text-white font-semibold shadow-md hover:scale-105 transition">
+    <div id="filterBar" class="flex flex-wrap gap-4 items-center justify-between bg-gradient-to-r from-pink-700 via-purple-900 to-black p-5 rounded-3xl shadow-xl border border-pink-600 mb-12 text-white font-semibold shadow-md hover:scale-[1.01] transition">
       <input
         id="repoSearch"
         type="text"
@@ -86,16 +87,16 @@ function displayFilterBar() {
       />
       <select
         id="languageFilter"
-        class="bg-gradient-to-r from-rose-900 to-gray-800 text-black px-5 py-3 rounded-3xl min-w-[140px] focus:outline-none focus:ring-4 focus:ring-pink-500/80 transition"
+        class="bg-gradient-to-r from-rose-900 to-gray-800 text-white px-5 py-3 rounded-3xl min-w-[140px] focus:outline-none focus:ring-4 focus:ring-pink-500/80 transition"
       >
-        <option value="All">All Languages</option>
-        <option value="JavaScript">JavaScript</option>
-        <option value="HTML">HTML</option>
-        <option value="CSS">CSS</option>
-        <option value="Python">Python</option>
-        <option value="TypeScript">TypeScript</option>
-        <option value="Shell">Shell</option>
-        <option value="Other">Other</option>
+        <option value="All" class="text-black">All Languages</option>
+        <option value="JavaScript" class="text-black">JavaScript</option>
+        <option value="HTML" class="text-black">HTML</option>
+        <option value="CSS" class="text-black">CSS</option>
+        <option value="Python" class="text-black">Python</option>
+        <option value="TypeScript" class="text-black">TypeScript</option>
+        <option value="Shell" class="text-black">Shell</option>
+        <option value="Other" class="text-black">Other</option>
       </select>
       <input
         id="minStars"
@@ -137,7 +138,7 @@ function displayRepos(repos) {
   }
 
   const html = repos
-    .map((repo) => {
+    .map((repo, index) => {
       const langColor = getLanguageColor(repo.language);
       const lastUpdated = new Date(repo.updated_at).toLocaleDateString(
         "en-IN",
@@ -147,14 +148,23 @@ function displayRepos(repos) {
           year: "numeric",
         }
       );
+      // Staggered animation delay
+      const delay = index * 0.1; 
+      
+      // Note: We use a button or div instead of 'a' tag to prevent default navigation, 
+      // but we'll keep 'a' with preventDefault for semantics or just use div for the card.
+      // Let's use a div that looks like a card and handle click.
       return `
-      <a
-        href="${repo.html_url}"
-        target="_blank"
-        class="repo-card tooltip block p-6 bg-gradient-to-r from-purple-900 via-gray-900 to-black rounded-3xl shadow-2xl border border-purple-700 hover:scale-[1.05] transform transition relative"
-        aria-label="Open ${repo.name} repository"
+      <div
+        onclick="openModal('${repo.name}')"
+        class="repo-card tooltip block p-6 bg-gradient-to-r from-purple-900 via-gray-900 to-black rounded-3xl shadow-2xl border border-purple-700 hover:border-pink-500 cursor-pointer relative overflow-hidden group"
+        style="animation-delay: ${delay}s;"
+        data-tilt
+        data-tilt-glare
+        data-tilt-max-glare="0.3"
+        data-tilt-scale="1.02"
       >
-        <h3 class="text-white font-extrabold text-xl mb-2">${repo.name}</h3>
+        <h3 class="text-white font-extrabold text-xl mb-2 group-hover:text-pink-400 transition-colors">${repo.name}</h3>
         <p class="text-gray-400 line-clamp-3 mb-4">${
           repo.description || "No description."
         }</p>
@@ -172,12 +182,115 @@ function displayRepos(repos) {
           <div class="ml-auto text-xs text-gray-400 italic">${lastUpdated}</div>
         </div>
         <span class="tooltiptext">Last updated: ${lastUpdated}</span>
-      </a>
+      </div>
       `;
     })
     .join("");
 
   repoGrid.innerHTML = html;
+
+  // Initialize Vanilla Tilt on new elements
+  if (typeof VanillaTilt !== "undefined") {
+    VanillaTilt.init(document.querySelectorAll(".repo-card"), {
+      max: 15,
+      speed: 400,
+      glare: true,
+      "max-glare": 0.2,
+    });
+  }
+}
+
+// --- Modal Logic ---
+
+const modal = document.getElementById("repoModal");
+const modalBackdrop = document.getElementById("modalBackdrop");
+const modalContent = document.getElementById("modalContent");
+const modalTitle = document.getElementById("modalTitle");
+const modalBody = document.getElementById("modalBody");
+const modalRepoLink = document.getElementById("modalRepoLink");
+const closeModalBtn = document.getElementById("closeModalBtn");
+const closeModalFooterBtn = document.getElementById("closeModalFooterBtn");
+
+// Close modal events
+[closeModalBtn, closeModalFooterBtn, modalBackdrop].forEach(el => {
+  if(el) el.addEventListener("click", closeModal);
+});
+
+// Close on Escape key
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && !modal.classList.contains("hidden")) {
+    closeModal();
+  }
+});
+
+async function openModal(repoName) {
+  const repo = allRepos.find(r => r.name === repoName);
+  if (!repo) return;
+
+  currentModalRepo = repo;
+  
+  // Show Modal
+  modal.classList.remove("hidden");
+  // Small delay to allow display:block to apply before adding opacity classes for transition
+  requestAnimationFrame(() => {
+    modal.classList.add("modal-open");
+  });
+
+  // Set Header Info
+  modalTitle.textContent = repo.name;
+  modalRepoLink.href = repo.html_url;
+
+  // Reset Body to Loading
+  modalBody.innerHTML = `
+    <div class="flex flex-col items-center justify-center h-60 text-gray-400">
+      <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-pink-500 mb-4"></div>
+      <p class="text-lg animate-pulse">Fetching README...</p>
+    </div>
+  `;
+
+  // Fetch README
+  try {
+    // Try main branch first, then master
+    let readmeContent = null;
+    const branches = [repo.default_branch, "main", "master"];
+    
+    for (const branch of branches) {
+      try {
+        const res = await fetch(`https://raw.githubusercontent.com/${repo.owner.login}/${repo.name}/${branch}/README.md`);
+        if (res.ok) {
+          readmeContent = await res.text();
+          break;
+        }
+      } catch (e) {
+        continue;
+      }
+    }
+
+    if (readmeContent) {
+      // Parse Markdown
+      modalBody.innerHTML = marked.parse(readmeContent);
+    } else {
+      throw new Error("No README found");
+    }
+  } catch (err) {
+    modalBody.innerHTML = `
+      <div class="flex flex-col items-center justify-center h-60 text-gray-400">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-600 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        <p class="text-lg">No README.md available for this repository.</p>
+        <p class="text-sm text-gray-500 mt-2">(${err.message || "404 Not Found"})</p>
+      </div>
+    `;
+  }
+}
+
+function closeModal() {
+  modal.classList.remove("modal-open");
+  setTimeout(() => {
+    modal.classList.add("hidden");
+    currentModalRepo = null;
+  }, 300); // Wait for transition
 }
 
 function getLanguageColor(lang) {

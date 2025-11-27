@@ -80,3 +80,89 @@ body {
   z-index: 40;
   position: relative;
 }
+
+/* Custom Scrollbar for Modal */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(236, 72, 153, 0.3);
+  border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(236, 72, 153, 0.5);
+}
+
+/* Markdown Styles inside Modal */
+.prose h1, .prose h2, .prose h3, .prose h4 {
+  color: #f472b6; /* pink-400 */
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+}
+.prose h1 { font-size: 2em; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.3em; }
+.prose h2 { font-size: 1.5em; }
+.prose a { color: #60a5fa; text-decoration: none; }
+.prose a:hover { text-decoration: underline; }
+.prose code { 
+  color: #e2e8f0; 
+  background-color: rgba(255,255,255,0.1); 
+  padding: 0.2em 0.4em; 
+  border-radius: 0.25em; 
+  font-size: 0.9em;
+}
+.prose pre {
+  background-color: #111827;
+  padding: 1em;
+  border-radius: 0.5em;
+  overflow-x: auto;
+  margin: 1em 0;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.prose pre code {
+  background-color: transparent;
+  padding: 0;
+  color: #e5e7eb;
+}
+.prose ul { list-style-type: disc; padding-left: 1.5em; margin: 1em 0; }
+.prose ol { list-style-type: decimal; padding-left: 1.5em; margin: 1em 0; }
+.prose blockquote {
+  border-left: 4px solid #ec4899;
+  padding-left: 1em;
+  color: #9ca3af;
+  font-style: italic;
+}
+.prose img {
+  max-width: 100%;
+  border-radius: 0.5rem;
+  margin: 1em 0;
+}
+
+/* Staggered Animation Keyframes */
+@keyframes slideUpFade {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.repo-card {
+  /* Initial state for animation */
+  opacity: 0; 
+  animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Modal Animation Classes */
+.modal-open #modalBackdrop {
+  opacity: 1;
+}
+.modal-open #modalContent {
+  opacity: 1;
+  transform: scale(1);
+}
