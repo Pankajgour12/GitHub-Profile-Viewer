@@ -149,6 +149,34 @@ function getScoreColor(score) {
   return "text-green-400 border-green-400";
 }
 
+function generateBadges(user, repos) {
+  const badges = [];
+
+  // 1. Code Machine
+  if (user.public_repos > 20) {
+    badges.push({ icon: "🤖", label: "Code Machine", color: "text-yellow-300 border-yellow-500 bg-yellow-500/20" });
+  }
+
+  // 2. Rising Star
+  if (user.followers > 50) {
+    badges.push({ icon: "🔥", label: "Rising Star", color: "text-orange-400 border-orange-500 bg-orange-500/20" });
+  }
+
+  // 3. Veteran
+  const createdYear = new Date(user.created_at).getFullYear();
+  const currentYear = new Date().getFullYear();
+  if (currentYear - createdYear >= 3) {
+    badges.push({ icon: "🛡️", label: "Veteran", color: "text-blue-300 border-blue-500 bg-blue-500/20" });
+  }
+
+  // 4. Open to Work
+  if (user.hireable) {
+    badges.push({ icon: "💼", label: "Open to Work", color: "text-green-300 border-green-500 bg-green-500/20" });
+  }
+
+  return badges;
+}
+
 function displayProfile(user, repos) {
   const score = calculateProfileScore(user, repos);
   
@@ -183,7 +211,7 @@ function displayProfile(user, repos) {
           <p class="text-fuchsia-300 font-medium mb-4 font-mono">@${user.login}</p>
           <p class="text-gray-300 leading-relaxed max-w-lg mx-auto md:mx-0 mb-6 font-light">${user.bio || "System status: Online. No bio data found."}</p>
           
-          <div class="flex flex-wrap justify-center md:justify-start gap-4 text-sm font-bold text-cyan-300 font-mono">
+          <div class="flex flex-wrap justify-center md:justify-start gap-4 text-sm font-bold text-cyan-300 font-mono mb-6">
             <div class="flex items-center gap-2 bg-black/50 px-4 py-2 rounded border border-cyan-500/30">
               <span>📍</span> ${user.location || "Unknown Sector"}
             </div>
@@ -192,12 +220,16 @@ function displayProfile(user, repos) {
               <span>📅</span> Init: ${createdYear}
             </div>
           </div>
-        </div>
-      </div>
 
-      <!-- Card 2: Radar Chart -->
-      <div class="holo-card rounded-xl p-4 flex flex-col items-center justify-center relative">
-        <h3 class="text-cyan-500 text-xs font-bold uppercase tracking-[0.2em] mb-4 absolute top-4 left-4 font-space">Metrics</h3>
+          <!-- Badges -->
+          <div class="flex flex-wrap justify-center md:justify-start gap-3 mb-6">
+            ${generateBadges(user, repos).map(badge => `
+              <div class="flex items-center gap-2 px-3 py-1 rounded-full border ${badge.color} text-xs font-bold uppercase tracking-wider shadow-[0_0_10px_rgba(0,0,0,0.5)] hover:scale-105 transition cursor-help" title="${badge.label}">
+                <span>${badge.icon}</span> ${badge.label}
+              </div>
+            `).join('')}
+          </div>
+
         <div class="w-full h-64 relative">
           <canvas id="skillsChart"></canvas>
         </div>
@@ -758,5 +790,85 @@ function displayRepos(repos) {
       glare: true,
       "max-glare": 0.2,
     });
+  }
+}
+
+// --- Galaxy Modal Logic ---
+const galaxyModal = document.getElementById("galaxyModal");
+const closeGalaxyBtn = document.getElementById("closeGalaxyBtn");
+
+if (closeGalaxyBtn) {
+  closeGalaxyBtn.addEventListener("click", () => {
+    galaxyModal.classList.add("hidden");
+  });
+}
+
+async function openGalaxyModal(username) {
+  galaxyModal.classList.remove("hidden");
+  const container = document.getElementById("network-graph");
+  container.innerHTML = '<div class="flex items-center justify-center h-full text-cyan-400 font-mono animate-pulse">Initializing Physics Simulation...</div>';
+
+  try {
+    // Fetch User and Followers
+    const [userRes, followersRes] = await Promise.all([
+      fetch(`https://api.github.com/users/${username}`),
+      fetch(`https://api.github.com/users/${username}/followers?per_page=20`)
+    ]);
+
+    const user = await userRes.json();
+    const followers = await followersRes.json();
+
+    // Create Nodes
+    const nodes = new vis.DataSet([
+      { id: 0, label: user.login, image: user.avatar_url, shape: "circularImage", size: 40, color: "#06b6d4" },
+      ...followers.map((f, i) => ({
+        id: i + 1,
+        label: f.login,
+        image: f.avatar_url,
+        shape: "circularImage",
+        size: 20,
+        color: "#d946ef"
+      }))
+    ]);
+
+    // Create Edges
+    const edges = new vis.DataSet(
+      followers.map((f, i) => ({ from: 0, to: i + 1, color: { color: "#d946ef", opacity: 0.6 } }))
+    );
+
+    // Network Data
+    const data = { nodes, edges };
+
+    // Options
+    const options = {
+      nodes: {
+        borderWidth: 2,
+        borderWidthSelected: 4,
+        color: {
+          border: '#06b6d4',
+          background: '#000000'
+        },
+        font: { color: '#ffffff', face: 'Space Grotesk' }
+      },
+      physics: {
+        stabilization: false,
+        barnesHut: {
+          gravitationalConstant: -8000,
+          springConstant: 0.04,
+          springLength: 95
+        }
+      },
+      interaction: {
+        hover: true,
+        tooltipDelay: 200
+      }
+    };
+
+    // Initialize Network
+    container.innerHTML = ""; // Clear loading text
+    new vis.Network(container, data, options);
+
+  } catch (err) {
+    container.innerHTML = `<div class="flex items-center justify-center h-full text-red-500 font-mono">Failed to load Galaxy: ${err.message}</div>`;
   }
 }

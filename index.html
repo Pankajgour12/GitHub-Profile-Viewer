@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>GitHub Hologram Viewer</title>
+  <title>GitHub Viewer 🤖</title>
   
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -22,6 +23,9 @@
   <!-- Marked.js -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
+  <!-- Vis-Network -->
+  <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+
   <link rel="stylesheet" href="style.css" />
 </head>
 
@@ -32,7 +36,6 @@
     <div class="perspective-grid"></div>
     <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>
   </div>
-
   <!-- Main Content -->
   <div class="relative z-10 container mx-auto px-4 py-12">
     
@@ -45,7 +48,7 @@
         Advanced Profile Visualization System
       </p>
       
-      <button id="battleModeBtn" class="mt-8 px-8 py-3 rounded-none border border-fuchsia-500 text-fuchsia-400 hover:bg-fuchsia-500/10 hover:text-fuchsia-300 transition font-bold text-sm tracking-widest uppercase flex items-center gap-3 mx-auto group">
+      <button id="battleModeBtn" class="mt-8 px-8 py-3 rounded-none border border-yellow-500 text-yellow-400 hover:bg-yellow-500/10 hover:text-yellow-300 transition font-bold text-sm tracking-widest uppercase flex items-center gap-3 mx-auto group">
         <span class="group-hover:animate-spin">⚔️</span> 
         <span>Battle Mode: OFF</span>
       </button>
@@ -113,6 +116,25 @@
           Access Source
         </a>
       </div>
+    </div>
+  </div>
+
+  <!-- Galaxy Modal -->
+  <div id="galaxyModal" class="fixed inset-0 z-50 hidden">
+    <!-- Close Button -->
+    <button id="closeGalaxyBtn" class="absolute top-6 right-6 z-50 text-white hover:text-fuchsia-500 transition p-2 bg-black/50 rounded-full border border-gray-700">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+    
+    <!-- Graph Container -->
+    <div id="network-graph" class="w-full h-full bg-black/95 backdrop-blur-xl"></div>
+    
+    <!-- Overlay Info -->
+    <div class="absolute bottom-6 left-6 z-50 pointer-events-none">
+      <h3 class="text-2xl font-bold text-white font-space glitch-text" data-text="GITHUB GALAXY">GITHUB GALAXY</h3>
+      <p class="text-cyan-400 font-mono text-sm">Interactive Physics Simulation // Drag Nodes</p>
     </div>
   </div>
 
