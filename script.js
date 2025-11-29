@@ -163,72 +163,70 @@ function displayProfile(user, repos) {
   const activity = Math.min((yearsActive / 10) * 100, 100);
 
   resultContainer.innerHTML = `
-    <div class="bento-grid animate-enter">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 animate-enter">
       
-      <!-- Card 1: Main Profile (Span 2x2) -->
-      <div class="bento-item-profile glass-panel rounded-3xl p-8 flex flex-col md:flex-row gap-8 items-center md:items-start relative overflow-hidden">
-        <!-- Background Glow -->
-        <div class="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 blur-[80px] rounded-full -z-10"></div>
+      <!-- Card 1: Main Profile (Span 2 cols) -->
+      <div class="holo-card md:col-span-2 rounded-xl p-8 flex flex-col md:flex-row gap-8 items-center md:items-start">
         
         <div class="relative group">
-          <div class="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-violet-500 rounded-full blur opacity-25 group-hover:opacity-75 transition duration-1000 group-hover:duration-200"></div>
-          <img src="${user.avatar_url}" alt="${user.login}" class="relative w-32 h-32 rounded-full border-2 border-slate-700 shadow-2xl object-cover">
+          <div class="absolute -inset-1 bg-gradient-to-r from-cyan-500 to-fuchsia-500 rounded-full blur opacity-50 group-hover:opacity-100 transition duration-500"></div>
+          <img src="${user.avatar_url}" alt="${user.login}" class="relative w-32 h-32 rounded-full border-2 border-black shadow-2xl object-cover">
         </div>
 
         <div class="flex-1 text-center md:text-left z-10">
           <div class="flex items-center justify-center md:justify-start gap-3 mb-2">
-            <h2 class="text-4xl font-bold text-white tracking-tight">${user.name || user.login}</h2>
-            <a href="${user.html_url}" target="_blank" class="text-slate-400 hover:text-indigo-400 transition">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+            <h2 class="text-4xl font-bold text-white tracking-tight font-space glitch-text" data-text="${user.name || user.login}">${user.name || user.login}</h2>
+            <a href="${user.html_url}" target="_blank" class="text-cyan-400 hover:text-fuchsia-400 transition">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
             </a>
           </div>
-          <p class="text-indigo-300 font-medium mb-4">@${user.login}</p>
-          <p class="text-slate-300 leading-relaxed max-w-lg mx-auto md:mx-0 mb-6">${user.bio || "Building amazing things."}</p>
+          <p class="text-fuchsia-300 font-medium mb-4 font-mono">@${user.login}</p>
+          <p class="text-gray-300 leading-relaxed max-w-lg mx-auto md:mx-0 mb-6 font-light">${user.bio || "System status: Online. No bio data found."}</p>
           
-          <div class="flex flex-wrap justify-center md:justify-start gap-4 text-sm font-medium text-slate-400">
-            <div class="flex items-center gap-1 bg-slate-800/50 px-3 py-1.5 rounded-lg border border-slate-700/50">
-              <span>📍</span> ${user.location || "Remote"}
+          <div class="flex flex-wrap justify-center md:justify-start gap-4 text-sm font-bold text-cyan-300 font-mono">
+            <div class="flex items-center gap-2 bg-black/50 px-4 py-2 rounded border border-cyan-500/30">
+              <span>📍</span> ${user.location || "Unknown Sector"}
             </div>
-            ${user.company ? `<div class="flex items-center gap-1 bg-slate-800/50 px-3 py-1.5 rounded-lg border border-slate-700/50"><span>🏢</span> ${user.company}</div>` : ''}
-            <div class="flex items-center gap-1 bg-slate-800/50 px-3 py-1.5 rounded-lg border border-slate-700/50">
-              <span>📅</span> Joined ${createdYear}
+            ${user.company ? `<div class="flex items-center gap-2 bg-black/50 px-4 py-2 rounded border border-cyan-500/30"><span>🏢</span> ${user.company}</div>` : ''}
+            <div class="flex items-center gap-2 bg-black/50 px-4 py-2 rounded border border-cyan-500/30">
+              <span>📅</span> Init: ${createdYear}
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Card 2: Radar Chart (Span 1x1) -->
-      <div class="bento-item-chart glass-panel rounded-3xl p-4 flex flex-col items-center justify-center relative">
-        <h3 class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-4 absolute top-6 left-6">Dev Profile</h3>
+      <!-- Card 2: Radar Chart -->
+      <div class="holo-card rounded-xl p-4 flex flex-col items-center justify-center relative">
+        <h3 class="text-cyan-500 text-xs font-bold uppercase tracking-[0.2em] mb-4 absolute top-4 left-4 font-space">Metrics</h3>
         <div class="w-full h-64 relative">
           <canvas id="skillsChart"></canvas>
         </div>
       </div>
 
-      <!-- Card 3: Stats Grid (Span 1x1) -->
-      <div class="bento-item-stats glass-panel rounded-3xl p-6 grid grid-cols-2 gap-4">
-        <div class="bg-slate-800/40 rounded-2xl p-4 flex flex-col items-center justify-center border border-slate-700/30 hover:bg-slate-800/60 transition">
-          <span class="text-3xl font-bold text-white mb-1">${user.public_repos}</span>
-          <span class="text-xs text-slate-400 uppercase tracking-wider">Repos</span>
+      <!-- Card 3: Stats Grid (Span 3 cols) -->
+      <div class="holo-card md:col-span-3 rounded-xl p-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-black/40 rounded-lg p-4 flex flex-col items-center justify-center border border-gray-800 hover:border-cyan-500 transition group">
+          <span class="text-3xl font-bold text-white mb-1 group-hover:text-cyan-400 transition font-space">${user.public_repos}</span>
+          <span class="text-xs text-gray-500 uppercase tracking-widest font-mono">Repos</span>
         </div>
-        <div class="bg-slate-800/40 rounded-2xl p-4 flex flex-col items-center justify-center border border-slate-700/30 hover:bg-slate-800/60 transition">
-          <span class="text-3xl font-bold text-white mb-1">${user.followers}</span>
-          <span class="text-xs text-slate-400 uppercase tracking-wider">Followers</span>
+        <div class="bg-black/40 rounded-lg p-4 flex flex-col items-center justify-center border border-gray-800 hover:border-fuchsia-500 transition group">
+          <span class="text-3xl font-bold text-white mb-1 group-hover:text-fuchsia-400 transition font-space">${user.followers}</span>
+          <span class="text-xs text-gray-500 uppercase tracking-widest font-mono">Followers</span>
         </div>
-        <div class="bg-slate-800/40 rounded-2xl p-4 flex flex-col items-center justify-center border border-slate-700/30 hover:bg-slate-800/60 transition">
-          <span class="text-3xl font-bold text-white mb-1">${user.following}</span>
-          <span class="text-xs text-slate-400 uppercase tracking-wider">Following</span>
+        <div class="bg-black/40 rounded-lg p-4 flex flex-col items-center justify-center border border-gray-800 hover:border-cyan-500 transition group">
+          <span class="text-3xl font-bold text-white mb-1 group-hover:text-cyan-400 transition font-space">${user.following}</span>
+          <span class="text-xs text-gray-500 uppercase tracking-widest font-mono">Following</span>
         </div>
-        <div class="bg-slate-800/40 rounded-2xl p-4 flex flex-col items-center justify-center border border-slate-700/30 hover:bg-slate-800/60 transition">
-          <span class="text-3xl font-bold text-indigo-400 mb-1">${score}</span>
-          <span class="text-xs text-slate-400 uppercase tracking-wider">Score</span>
+        <div class="bg-black/40 rounded-lg p-4 flex flex-col items-center justify-center border border-gray-800 hover:border-fuchsia-500 transition group">
+          <span class="text-3xl font-bold text-white mb-1 group-hover:text-fuchsia-400 transition font-space">${score}</span>
+          <span class="text-xs text-gray-500 uppercase tracking-widest font-mono">Score</span>
         </div>
       </div>
 
     </div>
   `;
 
-  // Initialize Chart.js (Indigo Theme)
+  // Initialize Chart.js (Neon Theme)
   const ctx = document.getElementById('skillsChart').getContext('2d');
   new Chart(ctx, {
     type: 'radar',
@@ -237,12 +235,12 @@ function displayProfile(user, repos) {
       datasets: [{
         label: 'Stats',
         data: [fame, impact, quantity, activity],
-        backgroundColor: 'rgba(99, 102, 241, 0.2)', // Indigo-500 alpha
-        borderColor: '#6366f1', // Indigo-500
+        backgroundColor: 'rgba(6, 182, 212, 0.2)', // Cyan alpha
+        borderColor: '#06b6d4', // Cyan
         borderWidth: 2,
-        pointBackgroundColor: '#1e293b', // Slate-800
-        pointBorderColor: '#818cf8', // Indigo-400
-        pointHoverBackgroundColor: '#818cf8',
+        pointBackgroundColor: '#000',
+        pointBorderColor: '#d946ef', // Magenta
+        pointHoverBackgroundColor: '#d946ef',
         pointHoverBorderColor: '#fff'
       }]
     },
@@ -251,11 +249,11 @@ function displayProfile(user, repos) {
       maintainAspectRatio: false,
       scales: {
         r: {
-          angleLines: { color: 'rgba(255, 255, 255, 0.05)' },
-          grid: { color: 'rgba(255, 255, 255, 0.05)' },
+          angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
+          grid: { color: 'rgba(255, 255, 255, 0.1)' },
           pointLabels: {
-            color: '#94a3b8', // Slate-400
-            font: { size: 11, family: "'Inter', sans-serif", weight: '600' }
+            color: '#94a3b8', 
+            font: { size: 12, family: "'Space Grotesk', sans-serif", weight: 'bold' }
           },
           ticks: { display: false, maxTicksLimit: 5, backdropColor: 'transparent' },
           suggestedMin: 0,
@@ -265,16 +263,70 @@ function displayProfile(user, repos) {
       plugins: {
         legend: { display: false },
         tooltip: {
-          backgroundColor: '#0f172a',
-          titleColor: '#818cf8',
-          bodyColor: '#e2e8f0',
-          borderColor: '#1e293b',
+          backgroundColor: 'rgba(0, 0, 0, 0.9)',
+          titleColor: '#06b6d4',
+          bodyColor: '#fff',
+          borderColor: '#d946ef',
           borderWidth: 1,
           padding: 10,
-          displayColors: false
+          displayColors: false,
+          titleFont: { family: "'Space Grotesk', sans-serif" },
+          bodyFont: { family: "'Outfit', sans-serif" }
         }
       }
     }
+  });
+}
+
+function displayFilterBar() {
+  const filterHTML = `
+    <div id="filterBar" class="flex flex-wrap gap-4 items-center justify-between bg-gradient-to-r from-pink-700 via-purple-900 to-black p-5 rounded-3xl shadow-xl border border-pink-600 mb-12 text-white font-semibold shadow-md hover:scale-[1.01] transition">
+      <input
+        id="repoSearch"
+        type="text"
+        placeholder="🔍 Filter Repositories by name..."
+        class="flex-grow min-w-[180px] bg-gradient-to-r from-gray-900 to-gray-800 px-5 py-3 rounded-3xl text-white placeholder-pink-400 focus:outline-none focus:ring-4 focus:ring-pink-500/80 transition"
+      />
+      <select
+        id="languageFilter"
+        class="bg-gradient-to-r from-rose-900 to-gray-800 text-white px-5 py-3 rounded-3xl min-w-[140px] focus:outline-none focus:ring-4 focus:ring-pink-500/80 transition"
+      >
+        <option value="All" class="text-black">All Languages</option>
+        <option value="JavaScript" class="text-black">JavaScript</option>
+        <option value="HTML" class="text-black">HTML</option>
+        <option value="CSS" class="text-black">CSS</option>
+        <option value="Python" class="text-black">Python</option>
+        <option value="TypeScript" class="text-black">TypeScript</option>
+        <option value="Shell" class="text-black">Shell</option>
+        <option value="Other" class="text-black">Other</option>
+      </select>
+      <input
+        id="minStars"
+        type="number"
+        min="0"
+        placeholder="⭐ Min Stars"
+        class="bg-gradient-to-r from-gray-900 to-gray-800 px-5 py-3 rounded-3xl text-white min-w-[150px] placeholder-pink-400 focus:outline-none focus:ring-4 focus:ring-pink-500/80 transition"
+      />
+      <button id="clearFilters" class="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-5 py-3 rounded-3xl font-bold hover:scale-105 transition transform">
+        ✖ Clear Filters
+      </button>
+    </div>
+    <div id="repoGrid" class="grid sm:grid-cols-2 md:grid-cols-3 gap-8 mt-8"></div>
+  `;
+
+  resultContainer.insertAdjacentHTML("beforeend", filterHTML);
+
+  // Attach filter event listeners
+  document.getElementById("repoSearch").addEventListener("input", applyFilters);
+  document
+    .getElementById("languageFilter")
+    .addEventListener("change", applyFilters);
+  document.getElementById("minStars").addEventListener("input", applyFilters);
+  document.getElementById("clearFilters").addEventListener("click", () => {
+    document.getElementById("repoSearch").value = "";
+    document.getElementById("languageFilter").value = "All";
+    document.getElementById("minStars").value = "";
+    applyFilters();
   });
 }
 
@@ -337,163 +389,6 @@ function displayBattleResults(u1, r1, u2, r2) {
     </div>
   `;
 }
-
-
-
-function displayFilterBar() {
-  const filterHTML = `
-    <div id="filterBar" class="flex flex-wrap gap-4 items-center justify-between bg-gradient-to-r from-pink-700 via-purple-900 to-black p-5 rounded-3xl shadow-xl border border-pink-600 mb-12 text-white font-semibold shadow-md hover:scale-[1.01] transition">
-      <input
-        id="repoSearch"
-        type="text"
-        placeholder="🔍 Filter Repositories by name..."
-        class="flex-grow min-w-[180px] bg-gradient-to-r from-gray-900 to-gray-800 px-5 py-3 rounded-3xl text-white placeholder-pink-400 focus:outline-none focus:ring-4 focus:ring-pink-500/80 transition"
-      />
-      <select
-        id="languageFilter"
-        class="bg-gradient-to-r from-rose-900 to-gray-800 text-white px-5 py-3 rounded-3xl min-w-[140px] focus:outline-none focus:ring-4 focus:ring-pink-500/80 transition"
-      >
-        <option value="All" class="text-black">All Languages</option>
-        <option value="JavaScript" class="text-black">JavaScript</option>
-        <option value="HTML" class="text-black">HTML</option>
-        <option value="CSS" class="text-black">CSS</option>
-        <option value="Python" class="text-black">Python</option>
-        <option value="TypeScript" class="text-black">TypeScript</option>
-        <option value="Shell" class="text-black">Shell</option>
-        <option value="Other" class="text-black">Other</option>
-      </select>
-      <input
-        id="minStars"
-        type="number"
-        min="0"
-        placeholder="⭐ Min Stars"
-        class="bg-gradient-to-r from-gray-900 to-gray-800 px-5 py-3 rounded-3xl text-white min-w-[150px] placeholder-pink-400 focus:outline-none focus:ring-4 focus:ring-pink-500/80 transition"
-      />
-      <button id="clearFilters" class="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-5 py-3 rounded-3xl font-bold hover:scale-105 transition transform">
-        ✖ Clear Filters
-      </button>
-    </div>
-    <div id="repoGrid" class="grid sm:grid-cols-2 md:grid-cols-3 gap-8 mt-8"></div>
-  `;
-
-  resultContainer.insertAdjacentHTML("beforeend", filterHTML);
-
-  // Attach filter event listeners
-  document.getElementById("repoSearch").addEventListener("input", applyFilters);
-  document
-    .getElementById("languageFilter")
-    .addEventListener("change", applyFilters);
-  document.getElementById("minStars").addEventListener("input", applyFilters);
-  document.getElementById("clearFilters").addEventListener("click", () => {
-    document.getElementById("repoSearch").value = "";
-    document.getElementById("languageFilter").value = "All";
-    document.getElementById("minStars").value = "";
-    applyFilters();
-  });
-}
-
-
-function displayRepos(repos) {
-  // Initialize Intersection Observer for Tech Stack
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const repoName = entry.target.dataset.repoName;
-        const owner = entry.target.dataset.owner;
-        const barId = `tech-stack-${repoName}`;
-        // Only fetch if empty (not already fetched)
-        if (document.getElementById(barId).innerHTML === "") {
-           fetchLanguages(owner, repoName, barId);
-        }
-        observer.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.1 });
-
-  const html = repos
-    .map((repo, index) => {
-      const langColor = getLanguageColor(repo.language);
-      const lastUpdated = new Date(repo.updated_at).toLocaleDateString(
-        "en-IN",
-        {
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-        }
-      );
-      const delay = index * 0.1; 
-      
-      return `
-      <div
-        class="repo-card block p-6 bg-gradient-to-r from-purple-900 via-gray-900 to-black rounded-3xl shadow-2xl border border-purple-700 hover:border-pink-500 relative overflow-hidden group transition-all duration-300"
-        style="animation-delay: ${delay}s;"
-        data-tilt
-        data-tilt-glare
-        data-tilt-max-glare="0.3"
-        data-tilt-scale="1.02"
-        data-repo-name="${repo.name}"
-        data-owner="${repo.owner.login}"
-      >
-        <div onclick="openModal('${repo.name}')" class="cursor-pointer">
-            <h3 class="text-white font-extrabold text-xl mb-2 group-hover:text-pink-400 transition-colors">${repo.name}</h3>
-            <p class="text-gray-400 line-clamp-3 mb-4">${
-            repo.description || "No description."
-            }</p>
-            <div class="flex flex-wrap items-center gap-4 text-sm text-pink-400 font-semibold mb-4">
-            <div class="flex items-center gap-1">
-                ⭐ ${repo.stargazers_count}
-            </div>
-            <div class="flex items-center gap-1">
-                🍴 ${repo.forks_count}
-            </div>
-            <div class="flex items-center gap-2">
-                <span class="w-4 h-4 rounded-full" style="background-color: ${langColor};"></span>
-                <span>${repo.language || "Unknown"}</span>
-            </div>
-            <div class="ml-auto text-xs text-gray-400 italic">${lastUpdated}</div>
-            </div>
-        </div>
-
-        <!-- Tech Stack Bar -->
-        <div id="tech-stack-${repo.name}" class="w-full h-3 rounded-full bg-gray-800 overflow-hidden flex mb-2"></div>
-        <!-- Tech Stack Legend -->
-        <div id="tech-stack-legend-${repo.name}" class="flex flex-wrap gap-3 text-xs font-semibold mb-4"></div>
-
-        <!-- Code Browser Button -->
-        <button 
-            onclick="toggleFileBrowser('${repo.name}', '${repo.owner.login}', '${repo.default_branch}', 'browser-${repo.name}')"
-            class="w-full py-2 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white text-sm font-semibold transition flex items-center justify-center gap-2"
-        >
-            <span>📂</span> Browse Files
-        </button>
-
-        <!-- File Browser Container -->
-        <div id="browser-${repo.name}" class="hidden mt-4 p-4 bg-black/50 rounded-xl border border-gray-700 text-sm text-gray-300 max-h-60 overflow-y-auto custom-scrollbar">
-            <div class="text-center text-gray-500 italic">Loading files...</div>
-        </div>
-      </div>
-      `;
-    })
-    .join("");
-
-  repoGrid.innerHTML = html;
-
-  // Observe new cards
-  document.querySelectorAll(".repo-card").forEach(card => observer.observe(card));
-
-  // Initialize Vanilla Tilt
-  if (typeof VanillaTilt !== "undefined") {
-    VanillaTilt.init(document.querySelectorAll(".repo-card"), {
-      max: 15,
-      speed: 400,
-      glare: true,
-      "max-glare": 0.2,
-    });
-  }
-}
-
-
-// --- Deep Dive Features Logic ---
 
 async function fetchLanguages(owner, repo, elementId) {
     const container = document.getElementById(elementId);
@@ -765,4 +660,103 @@ function applyFilters() {
   });
 
   displayRepos(filtered);
+}
+
+function displayRepos(repos) {
+  // Initialize Intersection Observer for Tech Stack
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const repoName = entry.target.dataset.repoName;
+        const owner = entry.target.dataset.owner;
+        const barId = `tech-stack-${repoName}`;
+        // Only fetch if empty (not already fetched)
+        if (document.getElementById(barId).innerHTML === "") {
+           fetchLanguages(owner, repoName, barId);
+        }
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  const html = repos
+    .map((repo, index) => {
+      const langColor = getLanguageColor(repo.language);
+      const lastUpdated = new Date(repo.updated_at).toLocaleDateString(
+        "en-IN",
+        {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        }
+      );
+      const delay = index * 0.1; 
+      
+      return `
+      <div
+        class="repo-card block p-6 bg-gradient-to-r from-purple-900 via-gray-900 to-black rounded-3xl shadow-2xl border border-purple-700 hover:border-pink-500 relative overflow-hidden group transition-all duration-300"
+        style="animation-delay: ${delay}s;"
+        data-tilt
+        data-tilt-glare
+        data-tilt-max-glare="0.3"
+        data-tilt-scale="1.02"
+        data-repo-name="${repo.name}"
+        data-owner="${repo.owner.login}"
+      >
+        <div onclick="openModal('${repo.name}')" class="cursor-pointer">
+            <h3 class="text-white font-extrabold text-xl mb-2 group-hover:text-pink-400 transition-colors">${repo.name}</h3>
+            <p class="text-gray-400 line-clamp-3 mb-4">${
+            repo.description || "No description."
+            }</p>
+            <div class="flex flex-wrap items-center gap-4 text-sm text-pink-400 font-semibold mb-4">
+            <div class="flex items-center gap-1">
+                ⭐ ${repo.stargazers_count}
+            </div>
+            <div class="flex items-center gap-1">
+                🍴 ${repo.forks_count}
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="w-4 h-4 rounded-full" style="background-color: ${langColor};"></span>
+                <span>${repo.language || "Unknown"}</span>
+            </div>
+            <div class="ml-auto text-xs text-gray-400 italic">${lastUpdated}</div>
+            </div>
+        </div>
+
+        <!-- Tech Stack Bar -->
+        <div id="tech-stack-${repo.name}" class="w-full h-3 rounded-full bg-gray-800 overflow-hidden flex mb-2"></div>
+        <!-- Tech Stack Legend -->
+        <div id="tech-stack-legend-${repo.name}" class="flex flex-wrap gap-3 text-xs font-semibold mb-4"></div>
+
+        <!-- Code Browser Button -->
+        <button 
+            onclick="toggleFileBrowser('${repo.name}', '${repo.owner.login}', '${repo.default_branch}', 'browser-${repo.name}')"
+            class="w-full py-2 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white text-sm font-semibold transition flex items-center justify-center gap-2"
+        >
+            <span>📂</span> Browse Files
+        </button>
+
+        <!-- File Browser Container -->
+        <div id="browser-${repo.name}" class="hidden mt-4 p-4 bg-black/50 rounded-xl border border-gray-700 text-sm text-gray-300 max-h-60 overflow-y-auto custom-scrollbar">
+            <div class="text-center text-gray-500 italic">Loading files...</div>
+        </div>
+      </div>
+      `;
+    })
+    .join("");
+
+  repoGrid.innerHTML = html;
+
+  // Observe new cards
+  document.querySelectorAll(".repo-card").forEach(card => observer.observe(card));
+
+  // Initialize Vanilla Tilt
+  if (typeof VanillaTilt !== "undefined") {
+    VanillaTilt.init(document.querySelectorAll(".repo-card"), {
+      max: 15,
+      speed: 400,
+      glare: true,
+      "max-glare": 0.2,
+    });
+  }
 }
