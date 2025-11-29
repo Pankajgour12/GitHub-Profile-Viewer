@@ -1,156 +1,131 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-inter: 'Inter', sans-serif;
 }
-html,
+
 body {
-  height: 100%;
-  width: 100%;
+  font-family: var(--font-inter);
 }
-/* Tooltip for last update */
+
+/* --- SaaS Glassmorphism --- */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+.glass-card {
+  background: rgba(30, 41, 59, 0.4); /* Slate-800/40 */
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card:hover {
+  background: rgba(30, 41, 59, 0.6);
+  border-color: rgba(99, 102, 241, 0.5); /* Indigo-500 */
+  transform: translateY(-2px);
+  box-shadow: 0 10px 40px -10px rgba(99, 102, 241, 0.3);
+}
+
+/* --- Bento Grid Utilities --- */
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .bento-grid {
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, auto);
+  }
+  
+  .bento-item-profile {
+    grid-column: span 2;
+    grid-row: span 2;
+  }
+  
+  .bento-item-chart {
+    grid-column: span 1;
+    grid-row: span 1;
+  }
+  
+  .bento-item-stats {
+    grid-column: span 1;
+    grid-row: span 1;
+  }
+}
+
+/* --- Custom Scrollbar --- */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.3);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(99, 102, 241, 0.5);
+}
+
+/* --- Animations --- */
+@keyframes fadeInScale {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-enter {
+  animation: fadeInScale 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Tooltip */
 .tooltip {
   position: relative;
-  cursor: pointer;
 }
-
-.tooltip:hover .tooltiptext {
-  animation: fadeInUp 0.7s ease forwards;
-  opacity: 0;
-  transform: translateY(20px);
-}
-
-@keyframes fadeInUp {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Filter bar animations */
-#filterBar input,
-#filterBar select {
-  transition: box-shadow 0.3s ease;
-}
-
-#filterBar input:focus,
-#filterBar select:focus {
-  box-shadow: 0 0 10px rgba(40, 132, 185, 0.8);
-  outline: none;
-}
-
-/* Repo card hover scale */
-.repo-card {
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.repo-card:hover {
-  transform: scale(1.05);
-  box-shadow: 0 10px 25px rgba(219, 39, 119, 0.6);
-  z-index: 40;
-  position: relative;
-}
-
-/* Battle Mode Button Glow */
-#battleModeBtn {
-  box-shadow: 0 0 10px rgba(168, 85, 247, 0.3);
-}
-#battleModeBtn:hover {
-  box-shadow: 0 0 20px rgba(168, 85, 247, 0.6);
-}
-
-/* Profile Score Badge Animation */
-#profileSection .absolute {
-  animation: bounceIn 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-}
-
-@keyframes bounceIn {
-  0% { transform: scale(0); opacity: 0; }
-  100% { transform: scale(1); opacity: 1; }
-}
-
-/* Custom Scrollbar for Modal */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 8px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.2);
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(236, 72, 153, 0.3);
+.tooltip:hover::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 8px;
+  background: #0f172a;
+  border: 1px solid #1e293b;
   border-radius: 4px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(236, 72, 153, 0.5);
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 50;
+  margin-bottom: 8px;
 }
 
-/* Markdown Styles inside Modal */
-.prose h1, .prose h2, .prose h3, .prose h4 {
-  color: #f472b6; /* pink-400 */
-  margin-top: 1.5em;
-  margin-bottom: 0.5em;
+/* Markdown Styles */
+.prose {
+  color: #cbd5e1; /* Slate-300 */
 }
-.prose h1 { font-size: 2em; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.3em; }
-.prose h2 { font-size: 1.5em; }
-.prose a { color: #60a5fa; text-decoration: none; }
-.prose a:hover { text-decoration: underline; }
-.prose code { 
-  color: #e2e8f0; 
-  background-color: rgba(255,255,255,0.1); 
-  padding: 0.2em 0.4em; 
-  border-radius: 0.25em; 
-  font-size: 0.9em;
+.prose h1, .prose h2, .prose h3 {
+  color: #f8fafc; /* Slate-50 */
+  font-weight: 700;
+}
+.prose a {
+  color: #818cf8; /* Indigo-400 */
 }
 .prose pre {
-  background-color: #111827;
-  padding: 1em;
-  border-radius: 0.5em;
-  overflow-x: auto;
-  margin: 1em 0;
-  border: 1px solid rgba(255,255,255,0.1);
+  background: #0f172a; /* Slate-900 */
+  border: 1px solid #1e293b;
 }
-.prose pre code {
-  background-color: transparent;
-  padding: 0;
-  color: #e5e7eb;
-}
-.prose ul { list-style-type: disc; padding-left: 1.5em; margin: 1em 0; }
-.prose ol { list-style-type: decimal; padding-left: 1.5em; margin: 1em 0; }
-.prose blockquote {
-  border-left: 4px solid #ec4899;
-  padding-left: 1em;
-  color: #9ca3af;
-  font-style: italic;
-}
-.prose img {
-  max-width: 100%;
-  border-radius: 0.5rem;
-  margin: 1em 0;
-}
-
-/* Staggered Animation Keyframes */
-@keyframes slideUpFade {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.repo-card {
-  /* Initial state for animation */
-  opacity: 0; 
-  animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-/* Modal Animation Classes */
-.modal-open #modalBackdrop {
-  opacity: 1;
-}
-.modal-open #modalContent {
-  opacity: 1;
-  transform: scale(1);
+.prose code {
+  color: #e2e8f0;
+  background: rgba(255,255,255,0.1);
+  padding: 2px 4px;
+  border-radius: 4px;
 }

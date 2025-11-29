@@ -151,59 +151,131 @@ function getScoreColor(score) {
 
 function displayProfile(user, repos) {
   const score = calculateProfileScore(user, repos);
-  const scoreColorClass = getScoreColor(score);
+  
+  // --- Metrics Calculation ---
+  const fame = Math.min((user.followers / 200) * 100, 100);
+  const totalStars = repos.reduce((acc, r) => acc + r.stargazers_count, 0);
+  const impact = Math.min((totalStars / 50) * 100, 100);
+  const quantity = Math.min((user.public_repos / 50) * 100, 100);
+  const createdYear = new Date(user.created_at).getFullYear();
+  const currentYear = new Date().getFullYear();
+  const yearsActive = currentYear - createdYear;
+  const activity = Math.min((yearsActive / 10) * 100, 100);
 
   resultContainer.innerHTML = `
-    <div id="profileSection" class="flex flex-col md:flex-row gap-6 items-center bg-gradient-to-r from-purple-900 via-black to-gray-900 p-8 rounded-3xl shadow-2xl border border-pink-600 relative">
+    <div class="bento-grid animate-enter">
       
-      <!-- Profile Score Badge -->
-      <div class="absolute top-4 right-4 flex flex-col items-center">
-        <div class="w-16 h-16 rounded-full border-4 ${scoreColorClass} flex items-center justify-center bg-black/50 shadow-lg backdrop-blur-sm">
-          <span class="text-xl font-bold ${scoreColorClass.split(' ')[0]}">${score}</span>
+      <!-- Card 1: Main Profile (Span 2x2) -->
+      <div class="bento-item-profile glass-panel rounded-3xl p-8 flex flex-col md:flex-row gap-8 items-center md:items-start relative overflow-hidden">
+        <!-- Background Glow -->
+        <div class="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 blur-[80px] rounded-full -z-10"></div>
+        
+        <div class="relative group">
+          <div class="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-violet-500 rounded-full blur opacity-25 group-hover:opacity-75 transition duration-1000 group-hover:duration-200"></div>
+          <img src="${user.avatar_url}" alt="${user.login}" class="relative w-32 h-32 rounded-full border-2 border-slate-700 shadow-2xl object-cover">
         </div>
-        <span class="text-xs text-gray-400 mt-1 font-semibold uppercase tracking-wider">Score</span>
+
+        <div class="flex-1 text-center md:text-left z-10">
+          <div class="flex items-center justify-center md:justify-start gap-3 mb-2">
+            <h2 class="text-4xl font-bold text-white tracking-tight">${user.name || user.login}</h2>
+            <a href="${user.html_url}" target="_blank" class="text-slate-400 hover:text-indigo-400 transition">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+            </a>
+          </div>
+          <p class="text-indigo-300 font-medium mb-4">@${user.login}</p>
+          <p class="text-slate-300 leading-relaxed max-w-lg mx-auto md:mx-0 mb-6">${user.bio || "Building amazing things."}</p>
+          
+          <div class="flex flex-wrap justify-center md:justify-start gap-4 text-sm font-medium text-slate-400">
+            <div class="flex items-center gap-1 bg-slate-800/50 px-3 py-1.5 rounded-lg border border-slate-700/50">
+              <span>📍</span> ${user.location || "Remote"}
+            </div>
+            ${user.company ? `<div class="flex items-center gap-1 bg-slate-800/50 px-3 py-1.5 rounded-lg border border-slate-700/50"><span>🏢</span> ${user.company}</div>` : ''}
+            <div class="flex items-center gap-1 bg-slate-800/50 px-3 py-1.5 rounded-lg border border-slate-700/50">
+              <span>📅</span> Joined ${createdYear}
+            </div>
+          </div>
+        </div>
       </div>
 
-      <img
-        src="${user.avatar_url}"
-        alt="${user.login}"
-        class="w-28 h-28 rounded-full border-4 border-pink-500 shadow-lg"
-      />
-      <div class="flex-1">
-        <h2
-          class="text-4xl font-extrabold bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent"
-        >
-           ${user.name || user.login}
-        </h2>
-        <p class="italic text-pink-300 mt-3 text-lg">${
-          user.bio || "No bio available"
-        }</p>
-        <p class="mt-4 text-pink-400 flex items-center gap-2 text-lg font-semibold">
-          📍
-          <span>${user.location || "Unknown"}</span>
-        </p>
-        <div class="mt-6 flex flex-wrap gap-8 text-white font-semibold text-base">
-          <div class="bg-rose-700 bg-opacity-30 rounded-2xl px-6 py-3 shadow-md">
-            ⭐ Repos: ${user.public_repos}
-          </div>
-          <div class="bg-pink-700 bg-opacity-30 rounded-2xl px-6 py-3 shadow-md">
-            👥 Followers: ${user.followers}
-          </div>
-          <div class="bg-pink-700 bg-opacity-30 rounded-2xl px-6 py-3 shadow-md">
-            🤝 Following: ${user.following}
-          </div>
-        </div>
-        <div class="flex flex-wrap gap-4 mt-6">
-          <a
-            href="${user.html_url}"
-            target="_blank"
-            class="inline-block px-6 py-2 rounded-xl bg-gray-800 text-pink-500 border border-pink-500 font-semibold hover:bg-pink-500 hover:text-white transition"
-          >View Profile</a>
-          
+      <!-- Card 2: Radar Chart (Span 1x1) -->
+      <div class="bento-item-chart glass-panel rounded-3xl p-4 flex flex-col items-center justify-center relative">
+        <h3 class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-4 absolute top-6 left-6">Dev Profile</h3>
+        <div class="w-full h-64 relative">
+          <canvas id="skillsChart"></canvas>
         </div>
       </div>
+
+      <!-- Card 3: Stats Grid (Span 1x1) -->
+      <div class="bento-item-stats glass-panel rounded-3xl p-6 grid grid-cols-2 gap-4">
+        <div class="bg-slate-800/40 rounded-2xl p-4 flex flex-col items-center justify-center border border-slate-700/30 hover:bg-slate-800/60 transition">
+          <span class="text-3xl font-bold text-white mb-1">${user.public_repos}</span>
+          <span class="text-xs text-slate-400 uppercase tracking-wider">Repos</span>
+        </div>
+        <div class="bg-slate-800/40 rounded-2xl p-4 flex flex-col items-center justify-center border border-slate-700/30 hover:bg-slate-800/60 transition">
+          <span class="text-3xl font-bold text-white mb-1">${user.followers}</span>
+          <span class="text-xs text-slate-400 uppercase tracking-wider">Followers</span>
+        </div>
+        <div class="bg-slate-800/40 rounded-2xl p-4 flex flex-col items-center justify-center border border-slate-700/30 hover:bg-slate-800/60 transition">
+          <span class="text-3xl font-bold text-white mb-1">${user.following}</span>
+          <span class="text-xs text-slate-400 uppercase tracking-wider">Following</span>
+        </div>
+        <div class="bg-slate-800/40 rounded-2xl p-4 flex flex-col items-center justify-center border border-slate-700/30 hover:bg-slate-800/60 transition">
+          <span class="text-3xl font-bold text-indigo-400 mb-1">${score}</span>
+          <span class="text-xs text-slate-400 uppercase tracking-wider">Score</span>
+        </div>
+      </div>
+
     </div>
   `;
+
+  // Initialize Chart.js (Indigo Theme)
+  const ctx = document.getElementById('skillsChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels: ['Fame', 'Impact', 'Quantity', 'Activity'],
+      datasets: [{
+        label: 'Stats',
+        data: [fame, impact, quantity, activity],
+        backgroundColor: 'rgba(99, 102, 241, 0.2)', // Indigo-500 alpha
+        borderColor: '#6366f1', // Indigo-500
+        borderWidth: 2,
+        pointBackgroundColor: '#1e293b', // Slate-800
+        pointBorderColor: '#818cf8', // Indigo-400
+        pointHoverBackgroundColor: '#818cf8',
+        pointHoverBorderColor: '#fff'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        r: {
+          angleLines: { color: 'rgba(255, 255, 255, 0.05)' },
+          grid: { color: 'rgba(255, 255, 255, 0.05)' },
+          pointLabels: {
+            color: '#94a3b8', // Slate-400
+            font: { size: 11, family: "'Inter', sans-serif", weight: '600' }
+          },
+          ticks: { display: false, maxTicksLimit: 5, backdropColor: 'transparent' },
+          suggestedMin: 0,
+          suggestedMax: 100
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#0f172a',
+          titleColor: '#818cf8',
+          bodyColor: '#e2e8f0',
+          borderColor: '#1e293b',
+          borderWidth: 1,
+          padding: 10,
+          displayColors: false
+        }
+      }
+    }
+  });
 }
 
 function displayBattleResults(u1, r1, u2, r2) {
