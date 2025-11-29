@@ -138,3 +138,12 @@ h1, h2, h3, h4, h5, h6 {
 .prose a { color: var(--neon-magenta); }
 .prose pre { background: #111; border: 1px solid #333; }
 .prose code { color: var(--neon-cyan); background: rgba(6, 182, 212, 0.1); }
+
+@keyframes scan {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.animate-scan {
+  animation: scan 4s linear infinite;
+}
