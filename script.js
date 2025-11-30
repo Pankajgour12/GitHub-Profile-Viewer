@@ -191,68 +191,81 @@ function displayProfile(user, repos) {
   const activity = Math.min((yearsActive / 10) * 100, 100);
 
   resultContainer.innerHTML = `
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 animate-enter">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-enter">
       
-      <!-- Card 1: Main Profile (Span 2 cols) -->
-      <div class="holo-card md:col-span-2 rounded-xl p-8 flex flex-col md:flex-row gap-8 items-center md:items-start">
+      <!-- Card 1: Main Profile (Span 1 col on desktop for better balance) -->
+      <div class="holo-card lg:col-span-1 rounded-2xl p-8 flex flex-col items-center text-center relative overflow-visible">
         
-        <div class="relative group">
-          <div class="absolute -inset-1 bg-gradient-to-r from-cyan-500 to-fuchsia-500 rounded-full blur opacity-50 group-hover:opacity-100 transition duration-500"></div>
-          <img src="${user.avatar_url}" alt="${user.login}" class="relative w-32 h-32 rounded-full border-2 border-black shadow-2xl object-cover">
+        <div class="relative mb-6 group">
+          <div class="absolute -inset-4 bg-gradient-to-r from-cyan-500 to-fuchsia-500 rounded-full blur-xl opacity-40 group-hover:opacity-60 transition duration-500"></div>
+          <img src="${user.avatar_url}" alt="${user.login}" class="relative w-48 h-48 rounded-full border-4 border-black shadow-2xl object-cover z-10">
+          <div class="absolute bottom-2 right-2 w-6 h-6 bg-green-500 border-4 border-black rounded-full z-20" title="Online"></div>
         </div>
 
-        <div class="flex-1 text-center md:text-left z-10">
-          <div class="flex items-center justify-center md:justify-start gap-3 mb-2">
-            <h2 class="text-4xl font-bold text-white tracking-tight font-space glitch-text" data-text="${user.name || user.login}">${user.name || user.login}</h2>
-            <a href="${user.html_url}" target="_blank" class="text-cyan-400 hover:text-fuchsia-400 transition">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
-            </a>
-          </div>
-          <p class="text-fuchsia-300 font-medium mb-4 font-mono">@${user.login}</p>
-          <p class="text-gray-300 leading-relaxed max-w-lg mx-auto md:mx-0 mb-6 font-light">${user.bio || "System status: Online. No bio data found."}</p>
-          
-          <div class="flex flex-wrap justify-center md:justify-start gap-4 text-sm font-bold text-cyan-300 font-mono mb-6">
-            <div class="flex items-center gap-2 bg-black/50 px-4 py-2 rounded border border-cyan-500/30">
-              <span>📍</span> ${user.location || "Unknown Sector"}
+        <h2 class="text-4xl font-bold text-white tracking-tight font-space mb-2">${user.name || user.login}</h2>
+        <a href="${user.html_url}" target="_blank" class="text-cyan-400 hover:text-white transition font-mono text-sm mb-6 block">@${user.login}</a>
+        
+        <p class="text-gray-400 leading-relaxed mb-8 font-light text-sm">${user.bio || "No bio available."}</p>
+        
+        <div class="w-full grid grid-cols-2 gap-4 mb-8">
+            <div class="bg-white/5 rounded-lg p-3">
+                <div class="text-2xl font-bold text-white font-space">${user.followers}</div>
+                <div class="text-[10px] text-gray-500 uppercase tracking-widest">Followers</div>
             </div>
-            ${user.company ? `<div class="flex items-center gap-2 bg-black/50 px-4 py-2 rounded border border-cyan-500/30"><span>🏢</span> ${user.company}</div>` : ''}
-            <div class="flex items-center gap-2 bg-black/50 px-4 py-2 rounded border border-cyan-500/30">
-              <span>📅</span> Init: ${createdYear}
+            <div class="bg-white/5 rounded-lg p-3">
+                <div class="text-2xl font-bold text-white font-space">${user.following}</div>
+                <div class="text-[10px] text-gray-500 uppercase tracking-widest">Following</div>
             </div>
-          </div>
+        </div>
 
-          <!-- Badges -->
-          <div class="flex flex-wrap justify-center md:justify-start gap-3 mb-6">
-            ${generateBadges(user, repos).map(badge => `
-              <div class="flex items-center gap-2 px-3 py-1 rounded-full border ${badge.color} text-xs font-bold uppercase tracking-wider shadow-[0_0_10px_rgba(0,0,0,0.5)] hover:scale-105 transition cursor-help" title="${badge.label}">
+        <div class="flex flex-wrap justify-center gap-2 w-full">
+            ${user.location ? `<span class="px-3 py-1 rounded-full bg-white/5 text-xs text-gray-300 border border-white/10">📍 ${user.location}</span>` : ''}
+            ${user.company ? `<span class="px-3 py-1 rounded-full bg-white/5 text-xs text-gray-300 border border-white/10">🏢 ${user.company}</span>` : ''}
+            <span class="px-3 py-1 rounded-full bg-white/5 text-xs text-gray-300 border border-white/10">📅 ${createdYear}</span>
+        </div>
+
+      </div>
+
+      <!-- Card 2: Stats & Analysis (Span 2 cols) -->
+      <div class="lg:col-span-2 space-y-6">
+        
+        <!-- Key Metrics -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div class="holo-card p-5 rounded-xl flex flex-col items-center justify-center">
+                <span class="text-3xl font-bold text-white mb-1 font-space">${user.public_repos}</span>
+                <span class="text-xs text-cyan-400 uppercase tracking-widest">Repos</span>
+            </div>
+            <div class="holo-card p-5 rounded-xl flex flex-col items-center justify-center">
+                <span class="text-3xl font-bold text-white mb-1 font-space">${totalStars}</span>
+                <span class="text-xs text-fuchsia-400 uppercase tracking-widest">Stars</span>
+            </div>
+            <div class="holo-card p-5 rounded-xl flex flex-col items-center justify-center">
+                <span class="text-3xl font-bold text-white mb-1 font-space">${score}</span>
+                <span class="text-xs text-green-400 uppercase tracking-widest">Score</span>
+            </div>
+            <div class="holo-card p-5 rounded-xl flex flex-col items-center justify-center">
+                <span class="text-3xl font-bold text-white mb-1 font-space">${yearsActive}</span>
+                <span class="text-xs text-yellow-400 uppercase tracking-widest">Years</span>
+            </div>
+        </div>
+
+        <!-- Radar Chart -->
+        <div class="holo-card rounded-xl p-6 h-[400px] flex items-center justify-center relative">
+            <h3 class="absolute top-6 left-6 text-lg font-bold text-white font-space">Dev Profile Analysis</h3>
+            <div class="w-full h-full">
+                <canvas id="skillsChart"></canvas>
+            </div>
+        </div>
+        
+        <!-- Badges -->
+        <div class="flex flex-wrap gap-3">
+             ${generateBadges(user, repos).map(badge => `
+              <div class="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-xs font-bold uppercase tracking-wider hover:bg-white/10 transition cursor-default">
                 <span>${badge.icon}</span> ${badge.label}
               </div>
             `).join('')}
-          </div>
+        </div>
 
-        <div class="w-full h-64 relative">
-          <canvas id="skillsChart"></canvas>
-        </div>
-      </div>
-
-      <!-- Card 3: Stats Grid (Span 3 cols) -->
-      <div class="holo-card md:col-span-3 rounded-xl p-6 grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="bg-black/40 rounded-lg p-4 flex flex-col items-center justify-center border border-gray-800 hover:border-cyan-500 transition group">
-          <span class="text-3xl font-bold text-white mb-1 group-hover:text-cyan-400 transition font-space">${user.public_repos}</span>
-          <span class="text-xs text-gray-500 uppercase tracking-widest font-mono">Repos</span>
-        </div>
-        <div class="bg-black/40 rounded-lg p-4 flex flex-col items-center justify-center border border-gray-800 hover:border-fuchsia-500 transition group">
-          <span class="text-3xl font-bold text-white mb-1 group-hover:text-fuchsia-400 transition font-space">${user.followers}</span>
-          <span class="text-xs text-gray-500 uppercase tracking-widest font-mono">Followers</span>
-        </div>
-        <div class="bg-black/40 rounded-lg p-4 flex flex-col items-center justify-center border border-gray-800 hover:border-cyan-500 transition group">
-          <span class="text-3xl font-bold text-white mb-1 group-hover:text-cyan-400 transition font-space">${user.following}</span>
-          <span class="text-xs text-gray-500 uppercase tracking-widest font-mono">Following</span>
-        </div>
-        <div class="bg-black/40 rounded-lg p-4 flex flex-col items-center justify-center border border-gray-800 hover:border-fuchsia-500 transition group">
-          <span class="text-3xl font-bold text-white mb-1 group-hover:text-fuchsia-400 transition font-space">${score}</span>
-          <span class="text-xs text-gray-500 uppercase tracking-widest font-mono">Score</span>
-        </div>
       </div>
 
     </div>
@@ -308,6 +321,71 @@ function displayProfile(user, repos) {
       }
     }
   });
+
+  // Initialize Aura
+  initAura(user.public_repos);
+}
+
+function initAura(repoCount) {
+  const canvas = document.getElementById('auraCanvas');
+  if (!canvas) return;
+  
+  const ctx = canvas.getContext('2d');
+  let width, height;
+  
+  // Set canvas size
+  const resize = () => {
+    width = canvas.width = canvas.offsetWidth;
+    height = canvas.height = canvas.offsetHeight;
+  };
+  resize();
+  // window.addEventListener('resize', resize); // Optional: if container resizes
+
+  const particles = [];
+  const particleCount = Math.min(50 + repoCount, 150); // Cap at 150 particles
+  const speedMultiplier = Math.min(1 + (repoCount * 0.01), 3); // Speed based on repos
+
+  for (let i = 0; i < particleCount; i++) {
+    particles.push({
+      x: Math.random() * width,
+      y: Math.random() * height,
+      radius: Math.random() * 2 + 0.5,
+      angle: Math.random() * Math.PI * 2,
+      speed: (Math.random() * 0.5 + 0.1) * speedMultiplier,
+      orbitRadius: Math.random() * (width / 2 - 20) + 20,
+      color: Math.random() > 0.5 ? '#06b6d4' : '#d946ef'
+    });
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, width, height);
+    
+    // Center point
+    const cx = width / 2;
+    const cy = height / 2;
+
+    particles.forEach(p => {
+      // Update angle
+      p.angle += p.speed * 0.01;
+      
+      // Calculate position based on orbit
+      p.x = cx + Math.cos(p.angle) * p.orbitRadius;
+      p.y = cy + Math.sin(p.angle) * p.orbitRadius;
+      
+      // Draw particle
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+      ctx.fillStyle = p.color;
+      ctx.globalAlpha = 0.6;
+      ctx.fill();
+      
+      // Draw connection lines (optional, keep it simple for performance)
+    });
+
+    requestAnimationFrame(animate);
+  }
+  
+  animate();
 }
 
 function displayFilterBar() {
@@ -724,6 +802,7 @@ function displayRepos(repos) {
       );
       const delay = index * 0.1; 
       
+      
       return `
       <div
         class="repo-card block p-6 bg-gradient-to-r from-purple-900 via-gray-900 to-black rounded-3xl shadow-2xl border border-purple-700 hover:border-pink-500 relative overflow-hidden group transition-all duration-300"
@@ -733,6 +812,7 @@ function displayRepos(repos) {
         data-tilt-max-glare="0.3"
         data-tilt-scale="1.02"
         data-repo-name="${repo.name}"
+        data-owner="${repo.owner.login}"
         data-owner="${repo.owner.login}"
       >
         <div onclick="openModal('${repo.name}')" class="cursor-pointer">
@@ -777,13 +857,16 @@ function displayRepos(repos) {
     })
     .join("");
 
+  const repoGrid = document.getElementById("repoGrid");
+  if (!repoGrid) return;
+
   repoGrid.innerHTML = html;
 
   // Observe new cards
   document.querySelectorAll(".repo-card").forEach(card => observer.observe(card));
 
-  // Initialize Vanilla Tilt
-  if (typeof VanillaTilt !== "undefined") {
+  // Initialize Vanilla Tilt (Desktop Only)
+  if (window.innerWidth > 768 && typeof VanillaTilt !== "undefined") {
     VanillaTilt.init(document.querySelectorAll(".repo-card"), {
       max: 15,
       speed: 400,
@@ -872,3 +955,64 @@ async function openGalaxyModal(username) {
     container.innerHTML = `<div class="flex items-center justify-center h-full text-red-500 font-mono">Failed to load Galaxy: ${err.message}</div>`;
   }
 }
+// --- Matrix Rain Effect ---
+function initMatrixRain() {
+  const canvas = document.getElementById("matrixCanvas");
+  if (!canvas) return;
+
+  const ctx = canvas.getContext("2d");
+  let width, height;
+
+  const resize = () => {
+    width = canvas.width = canvas.offsetWidth;
+    height = canvas.height = canvas.offsetHeight;
+  };
+  resize();
+  window.addEventListener("resize", resize);
+
+  const columns = Math.floor(width / 20);
+  const drops = Array(columns).fill(1);
+  
+  const chars = "01GITHUBHOLOGRAM";
+
+  function draw() {
+    ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.fillStyle = "#06b6d4"; // Cyan
+    ctx.font = "15px 'Space Grotesk'";
+
+    for (let i = 0; i < drops.length; i++) {
+      const text = chars[Math.floor(Math.random() * chars.length)];
+      ctx.fillText(text, i * 20, drops[i] * 20);
+
+      if (drops[i] * 20 > height && Math.random() > 0.975) {
+        drops[i] = 0;
+      }
+      drops[i]++;
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+// Initialize Matrix Rain on Load
+document.addEventListener("DOMContentLoaded", initMatrixRain);
+
+// --- City View Logic ---
+
+function showToast(msg) {
+  const toast = document.createElement("div");
+  toast.className = "toast show";
+  toast.innerText = msg;
+  document.body.appendChild(toast);
+  setTimeout(() => {
+    toast.classList.remove("show");
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
+
+// Update displayRepos to include sound and 3D props
+
+
+// ... (Rest of the file)
