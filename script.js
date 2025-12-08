@@ -973,7 +973,7 @@ function initMatrixRain() {
   const columns = Math.floor(width / 20);
   const drops = Array(columns).fill(1);
   
-  const chars = "01GITHUBHOLOGRAM";
+  const chars = "01PANKAJGOUR";
 
   function draw() {
     ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
@@ -999,20 +999,10 @@ function initMatrixRain() {
 // Initialize Matrix Rain on Load
 document.addEventListener("DOMContentLoaded", initMatrixRain);
 
-// --- City View Logic ---
 
-function showToast(msg) {
-  const toast = document.createElement("div");
-  toast.className = "toast show";
-  toast.innerText = msg;
-  document.body.appendChild(toast);
-  setTimeout(() => {
-    toast.classList.remove("show");
-    setTimeout(() => toast.remove(), 300);
-  }, 3000);
-}
+
 
 // Update displayRepos to include sound and 3D props
 
 
-// ... (Rest of the file)
+
